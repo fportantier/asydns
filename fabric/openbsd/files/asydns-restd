@@ -1,0 +1,15 @@
+#!/bin/sh
+
+daemon="cd /opt/asydns && /opt/asydns/venv/bin/gunicorn"
+daemon_flags="--bind 0.0.0.0:8443 -u _asydns -g _asydns --reload --certfile /etc/ssl/asydns.org.fullchain.crt --keyfile /etc/ssl/asydns.org.key asydns-restd:app"
+daemon_user="_asydns"
+
+. /etc/rc.d/rc.subr
+
+pexp=".*asydns-restd:app.*"
+
+rc_bg=YES
+rc_reload=NO
+
+rc_cmd $1
+

@@ -1,2 +1,4 @@
 dnslib
+falcon
 pycrypto
+gunicorn

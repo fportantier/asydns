@@ -1,6 +1,7 @@
 import base64
 import json
 import re
+import sys
 from pathlib import Path
 from pprint import pprint
 from time import time
@@ -11,12 +12,10 @@ from Crypto.Hash import SHA224
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
-DOMAIN = 'asydns.org'
-MAX_DELTA = 30
-NAME_VALID_FOR = 5
-
-dotdir = Path.home() / '.asymdns'
+dotdir = Path.home() / '.asydns'
 dotdir.mkdir(exist_ok=True)
+
+cfg_file = dotdir / 'config.json'
 
 pub_file = dotdir / 'server.pub'
 key_file = dotdir / 'server.key'
@@ -25,6 +24,23 @@ datadir = Path('/tmp/asymdns')
 datadir.mkdir(exist_ok=True)
 
 regex_sha224 = re.compile('[0-9a-f]{56}')
+
+defaults = {
+    'domain': 'asydns.com',
+    'ttl' : 3600,
+}
+
+cfg = defaults
+
+if cfg_file.is_file():
+    try:
+        with cfg_file.open() as c:
+            cfg.update(json.loads(c.read()))
+    except Exception:
+        print('error loading config file, using defaults', file=sys.stderr)
+else:
+    with cfg_file.open('w') as c:
+        c.write(json.dumps(defaults, indent=4))
 
 
 if not key_file.is_file():
@@ -59,7 +75,7 @@ class AsymDNS(object):
 
         ip_file = datadir / (sha224 + '.ip')
 
-        if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > NAME_VALID_FOR:
+        if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > cfg['ttl']:
             resp.status = falcon.HTTP_404
         else:
             resp.status = falcon.HTTP_200
@@ -87,7 +103,7 @@ class AsymDNS(object):
         ip_file = datadir / sha224
 
         ip = None
-        if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > NAME_VALID_FOR:
+        if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > cfg['ttl']:
             resp.status = falcon.HTTP_404
         else:
             resp.status = falcon.HTTP_200
@@ -137,7 +153,7 @@ class AsymDNS(object):
             resp.body = json.dumps({'error': 'Invalid response'})
             return False
 
-        if delta > MAX_DELTA:
+        if delta > 30:
             resp.status = falcon.HTTP_400
             resp.body = json.dumps({'error': 'Expired response'})
             return False
@@ -151,7 +167,7 @@ class AsymDNS(object):
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({
             'ip': req.remote_addr,
-            'name': '{}.{}'.format(client_sha224, DOMAIN)
+            'name': '{}.{}'.format(client_sha224, cfg['domain'])
         })
 
         return True

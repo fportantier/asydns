@@ -8,7 +8,7 @@ from Crypto.Hash import SHA224
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
-dotdir = Path.home() / '.asymdns'
+dotdir = Path.home() / '.asydns'
 
 dotdir.mkdir(exist_ok=True)
 

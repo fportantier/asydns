@@ -1,4 +1,7 @@
+import os
+import pwd
 import re
+import sys
 import time
 from pathlib import Path
 
@@ -11,6 +14,25 @@ datadir = Path('/tmp/asymdns')
 datadir.mkdir(exist_ok=True)
 
 regex_sha224 = re.compile('[0-9a-f]{56}')
+
+
+def drop_privileges(new_user):
+    if os.getuid() != 0:
+        return
+
+    pwnam = pwd.getpwnam(new_user)
+
+    # Remove group privileges
+    os.setgroups([])
+
+    # Try setting the new uid/gid
+    os.setgid(pwnam.pw_gid)
+    os.setuid(pwnam.pw_uid)
+
+    #Ensure a reasonable umask
+    old_umask = os.umask(0o22)
+
+    return True
 
 
 class AsymResolver(BaseResolver):
@@ -39,12 +61,12 @@ if __name__ == "__main__":
 
     server = DNSServer(
         resolver,
-        port=5353,
+        port=53,
         address="0.0.0.0"
     )
 
     server.start_thread()
+    drop_privileges(sys.argv[1])
 
     while server.isAlive():
         time.sleep(1)
-

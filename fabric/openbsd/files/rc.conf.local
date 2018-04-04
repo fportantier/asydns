@@ -1,0 +1,2 @@
+httpd_flags=
+pkg_scripts="asydns_restd asydns_dnsd"

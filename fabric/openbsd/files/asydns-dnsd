@@ -1,0 +1,14 @@
+#!/bin/sh
+
+daemon="cd /opt/asydns && /opt/asydns/asydns-dnsd"
+daemon_flags="_asydns"
+
+. /etc/rc.d/rc.subr
+
+pexp=".*asydns-dnsd.*"
+
+rc_bg=YES
+rc_reload=NO
+
+rc_cmd $1
+
