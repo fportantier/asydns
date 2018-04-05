@@ -38,9 +38,6 @@ if cfg_file.is_file():
             cfg.update(json.loads(c.read()))
     except Exception:
         print('error loading config file, using defaults', file=sys.stderr)
-else:
-    with cfg_file.open('w') as c:
-        c.write(json.dumps(defaults, indent=4))
 
 
 if not key_file.is_file():
