@@ -3,22 +3,31 @@ import json
 import re
 import sys
 from pathlib import Path
+import markdown
 from pprint import pprint
 from time import time
-
+import os
 import falcon
 from Crypto import Random
 from Crypto.Hash import SHA224
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
-
+import pwd
 
 
 class AsymDNS(object):
 
     def __init__(self):
 
-        dotdir = Path.home() / '.asydns'
+        user = pwd.getpwuid(os.getuid())
+
+        print('@@@@@@@@@@@@@@@@@@@@@@', __file__)
+
+        self.home_dir = Path(user.pw_dir)
+
+        self.code_dir = Path(__file__).parent
+
+        dotdir = self.home_dir / '.asydns'
         dotdir.mkdir(exist_ok=True)
 
         cfg_file = dotdir / 'config.json'
@@ -66,6 +75,12 @@ class AsymDNS(object):
             self.pub = RSA.importKey(p.read())
 
 
+    def get_help(self):
+        with (self.code_dir / 'help.md').open() as help_file:
+            help_text = markdown.markdown(help_file.read())
+            return help_text
+
+
     def on_head(self, req, resp, sha224=''):
         """Handles HEAD requests"""
 
@@ -98,7 +113,9 @@ class AsymDNS(object):
 
         if not self.regex_sha224.match(sha224):
             resp.status = falcon.HTTP_400
-            resp.body = json.dumps({'error': 'Invalid SHA224'})
+            resp.content_type = 'text/html'
+            #resp.body = json.dumps({'error': 'Invalid SHA224'})
+            resp.body = self.get_help()
             return False
 
         ip_file = self.datadir / sha224
@@ -180,3 +197,4 @@ asymdns = AsymDNS()
 
 app.add_route('/', asymdns)
 app.add_route('/{sha224}', asymdns)
+
