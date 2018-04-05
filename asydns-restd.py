@@ -26,7 +26,7 @@ datadir.mkdir(exist_ok=True)
 regex_sha224 = re.compile('[0-9a-f]{56}')
 
 defaults = {
-    'domain': 'asydns.com',
+    'domain': 'a.asydns.com',
     'ttl' : 3600,
 }
 

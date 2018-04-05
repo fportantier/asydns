@@ -13,7 +13,10 @@ py3 = bin_dir + 'python3.6'
 def update():
 
     with cd(home_dir):
+        run("git reset --hard HEAD")
         run("git pull")
+
+    run('chown -R _asydns:_asydns /opt/asydns')
 
     run('rcctl restart asydns_restd')
     run('rcctl restart asydns_dnsd')
