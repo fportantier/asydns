@@ -15,6 +15,8 @@ def update():
     with cd(home_dir):
         run("git reset --hard HEAD")
         run("git pull")
+        run("su - _asydns -c '{} install --upgrade pip'".format(pip3))
+        run("su - _asydns -c '{} install -r requirements.txt'".format(pip3))
 
     run('chown -R _asydns:_asydns /opt/asydns')
 
