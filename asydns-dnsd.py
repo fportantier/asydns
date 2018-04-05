@@ -1,3 +1,4 @@
+import json
 import os
 import pwd
 import re
@@ -68,6 +69,7 @@ class AsymResolver(BaseResolver):
         print(request.q)
         print(dir(request.q))
         print(qname)
+
         if qname in self.cfg['registers'].keys():
             answer = RR(qname, QTYPE.A, rdata=A(registers[qname]), ttl=300)
             reply.add_answer(answer)
