@@ -87,15 +87,15 @@ class AsymDNS(object):
             return help_text
 
 
-    def on_head(self, req, resp, sha224=''):
+    def on_head(self, req, resp, param=''):
         """Handles HEAD requests"""
 
-        if not self.regex_sha224.match(sha224):
+        if not self.regex_sha224.match(param):
             resp.status = falcon.HTTP_400
             resp.body = ('\nInvalid sha 224.\n\n')
             return False
 
-        ip_file = self.datadir / (sha224)
+        ip_file = self.datadir / (param)
 
         if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > self.cfg['ttl']:
             resp.status = falcon.HTTP_404
@@ -123,14 +123,14 @@ class AsymDNS(object):
             resp.body = self.get_help()
             return True
 
-        if not self.regex_sha224.match(sha224):
+        if not self.regex_sha224.match(param):
             resp.status = falcon.HTTP_400
             resp.content_type = 'text/html'
             resp.body = json.dumps({'error': 'Invalid SHA224'})
             resp.body = self.get_help()
             return True
 
-        ip_file = self.datadir / sha224
+        ip_file = self.datadir / param
 
         ip = None
         if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > self.cfg['ttl']:
@@ -208,5 +208,5 @@ app = falcon.API()
 asymdns = AsymDNS()
 
 app.add_route('/', asymdns)
-app.add_route('/{sha224}', asymdns)
+app.add_route('/{param}', asymdns)
 
