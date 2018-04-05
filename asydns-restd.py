@@ -1,27 +1,62 @@
 import base64
 import json
+import os
+import pwd
 import re
 import sys
 from pathlib import Path
-import markdown
 from pprint import pprint
 from time import time
-import os
+
 import falcon
 from Crypto import Random
 from Crypto.Hash import SHA224
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
-import pwd
 
 
-class AsymDNS(object):
+class AsyDNS():
+
+
+    def _validate_response(self, req):
+
+        try:
+            body = req.stream.read()
+            data = json.loads(body.decode('utf-8'))
+            challenge = base64.b64decode(data['challenge'])
+            response = base64.b64decode(data['response'])
+            client_pub = RSA.importKey(data['pub'])
+            decrypted_challenge = self.key.decrypt(challenge).decode()
+            challenge_addr, challenge_time, junk = decrypted_challenge.split('@', maxsplit=2)
+            delta = int(challenge_time) - time()
+        except Exception as e:
+            print(e)
+            return { 'status': falcon.HTTP_400, 'error': 'Invalid request' }
+
+        h = SHA224.new(challenge)
+        verifier = PKCS1_v1_5.new(client_pub)
+
+        if not verifier.verify(h, response):
+            return { 'status': falcon.HTTP_400, 'error': 'Invalid signature' }
+
+        if challenge_addr != req.remote_addr:
+            return { 'status': falcon.HTTP_400, 'error': 'Invalid response' }
+
+        if delta > 30:
+            return { 'status': falcon.HTTP_400, 'error': 'Expired response' }
+
+        sha224 = SHA224.new(client_pub.exportKey(format='DER')).hexdigest()
+
+        return {
+            'status': falcon.HTTP_200,
+            'sha224' : sha224,
+            'error': None,
+        }
+
 
     def __init__(self):
 
         user = pwd.getpwuid(os.getuid())
-
-        print('@@@@@@@@@@@@@@@@@@@@@@', __file__)
 
         self.home_dir = Path(user.pw_dir)
 
@@ -37,6 +72,9 @@ class AsymDNS(object):
 
         self.datadir = dotdir / 'data'
         self.datadir.mkdir(exist_ok=True)
+
+        self.revokedir = dotdir / 'revoked'
+        self.revokedir.mkdir(exist_ok=True)
 
         self.regex_sha224 = re.compile('[0-9a-f]{56}')
 
@@ -75,37 +113,7 @@ class AsymDNS(object):
             self.pub = RSA.importKey(p.read())
 
 
-    def get_help(self):
-
-        with (self.code_dir / 'help.md').open() as help_file:
-
-            try:
-                help_text = markdown.markdown(help_file.read())
-            except Exception:
-                help_text = '<h1>Error getting the help text</h1>'
-
-            return help_text
-
-
-    def on_head(self, req, resp, param=''):
-        """Handles HEAD requests"""
-
-        if not self.regex_sha224.match(param):
-            resp.status = falcon.HTTP_400
-            resp.body = ('\nInvalid sha 224.\n\n')
-            return False
-
-        ip_file = self.datadir / (param)
-
-        if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > self.cfg['ttl']:
-            resp.status = falcon.HTTP_404
-        else:
-            resp.status = falcon.HTTP_200
-
-        return True
-
-
-    def on_get(self, req, resp, param=''):
+    def on_get(self, req, resp):
         """Handles GET requests"""
 
         token = '{}@{}@{}'.format(
@@ -117,31 +125,7 @@ class AsymDNS(object):
         challenge = self.pub.encrypt(token.encode(), '0')[0]
         challenge = base64.b64encode(challenge).decode()
 
-        if param == '':
-            resp.status = falcon.HTTP_200
-            resp.content_type = 'text/html'
-            resp.body = self.get_help()
-            return True
-
-        if not self.regex_sha224.match(param):
-            resp.status = falcon.HTTP_400
-            resp.content_type = 'text/html'
-            resp.body = json.dumps({'error': 'Invalid SHA224'})
-            resp.body = self.get_help()
-            return True
-
-        ip_file = self.datadir / param
-
-        ip = None
-        if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > self.cfg['ttl']:
-            resp.status = falcon.HTTP_404
-        else:
-            resp.status = falcon.HTTP_200
-            with ip_file.open() as ipf:
-                ip = ipf.read()
-
         resp.body = json.dumps({
-            'ip': ip,
             'challenge' : challenge,
         })
 
@@ -149,47 +133,27 @@ class AsymDNS(object):
     def on_post(self, req, resp):
         """Handles POST requests"""
 
-        body = req.stream.read()
-        data = json.loads(body.decode('utf-8'))
+        validation = self._validate_response(req)
 
-        try:
-            client_pub = RSA.importKey(data['pub'])
-        except:
-            resp.status = falcon.HTTP_400
-            resp.body = json.dumps({'error': 'Invalid public key'})
-            return False
+        if validation['status'] != falcon.HTTP_200:
+            resp.status = validation['status']
+            resp.body = json.dumps({ 'error' : validation['error'] })
+            return
 
-        try:
-            response = base64.b64decode(data['response'])
-            challenge = base64.b64decode(data['challenge'])
-            decrypted_challenge = self.key.decrypt(challenge).decode()
-            challenge_addr, challenge_time, junk = decrypted_challenge.split('@', maxsplit=2)
-            delta = int(challenge_time) - time()
-        except:
-            resp.status = falcon.HTTP_400
-            resp.body = json.dumps({'error': 'Invalid request'})
-            return False
+        ip_file = self.datadir / validation['sha224']
 
-        h = SHA224.new(challenge)
-        verifier = PKCS1_v1_5.new(client_pub)
+        if (self.revokedir / validation['sha224']).is_file():
 
-        if not verifier.verify(h, response):
-            resp.status = falcon.HTTP_400
-            resp.body = json.dumps({'error': 'Invalid signature'})
-            return False
+            if ip_file.is_file():
+                ip_file.unlink()
 
-        if challenge_addr != req.remote_addr:
-            resp.status = falcon.HTTP_400
-            resp.body = json.dumps({'error': 'Invalid response'})
-            return False
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps({
+                'error': 'revoked public key',
+                'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
+            })
 
-        if delta > 30:
-            resp.status = falcon.HTTP_400
-            resp.body = json.dumps({'error': 'Expired response'})
-            return False
-
-        client_sha224 = SHA224.new(client_pub.exportKey(format='DER')).hexdigest()
-        ip_file = self.datadir / client_sha224
+            return True
 
         with ip_file.open('w') as ipf:
             ipf.write(req.remote_addr)
@@ -197,7 +161,30 @@ class AsymDNS(object):
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({
             'ip': req.remote_addr,
-            'name': '{}.{}'.format(client_sha224, self.cfg['domain'])
+            'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
+        })
+
+        return True
+
+
+    def on_delete(self, req, resp):
+        """Handles DELETE requests"""
+
+        validation = self._validate_response(req)
+
+        if validation['status'] != falcon.HTTP_200:
+            resp.status = validation['status']
+            resp.body = json.dumps({ 'error' : validation['error'] })
+            return
+
+        revoke_file = self.revokedir / validation['sha224']
+
+        with revoke_file.open('w') as rf:
+            rf.write(req.remote_addr)
+
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({
+            'message' : '{} has been revoked'.format(validation['sha224']),
         })
 
         return True
@@ -205,8 +192,6 @@ class AsymDNS(object):
 
 app = falcon.API()
 
-asymdns = AsymDNS()
+asydns = AsyDNS()
 
-app.add_route('/', asymdns)
-app.add_route('/{param}', asymdns)
-
+app.add_route('/api', asydns)

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 daemon="cd /opt/asydns && /opt/asydns/venv/bin/gunicorn"
-daemon_flags="--bind 0.0.0.0:8443 --reload --certfile /etc/ssl/asydns.org.fullchain.crt --keyfile /etc/ssl/asydns.org.key asydns-restd:app"
+daemon_flags="--bind 0.0.0.0:8443 --certfile /etc/ssl/asydns.org.fullchain.crt --keyfile /etc/ssl/asydns.org.key asydns-restd:app"
 daemon_user="_asydns"
 
 . /etc/rc.d/rc.subr

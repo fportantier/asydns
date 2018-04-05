@@ -39,8 +39,10 @@ with pub_file.open() as p:
 #sha224 = SHA224.new(pub.exportKey('DER')).hexdigest()
 #print('Your name will be {}.a.asymdns.io'.format(sha224))
 
+URL = 'https://asydns.org'
 #print('Checking if the name exists ...')
-r = requests.get('https://asydns.org')
+#r = requests.get('https://asydns.org')
+r = requests.get(URL + '/api')
 
 #print(r.status_code)
 print(r.content)
@@ -49,12 +51,20 @@ print(r.content)
 j = r.json()
 
 
+
 challenge = base64.b64decode(j['challenge'])
 signer = PKCS1_v1_5.new(key)
 response = signer.sign(SHA224.new(challenge))
 response = base64.b64encode(response).decode()
 
-r = requests.post('https://asydns.org/challenge', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
-
+r = requests.post(URL + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
+print(r.content)
 print(json.dumps(r.json(), indent=4))
-#content)
+
+r = requests.delete(URL + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
+print(r.content)
+print(json.dumps(r.json(), indent=4))
+
+r = requests.post(URL + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
+print(r.content)
+print(json.dumps(r.json(), indent=4))
