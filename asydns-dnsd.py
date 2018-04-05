@@ -35,8 +35,8 @@ class AsymResolver(BaseResolver):
         user = pwd.getpwnam(sys.argv[1])
 
         self.homedir = Path(user.pw_dir)
-        self.dotdir = homedir / '.asydns'
-        self.datadir = dotdir / 'data'
+        self.dotdir = self.homedir / '.asydns'
+        self.datadir = self.dotdir / 'data'
 
         self.datadir.mkdir(parents=True, exist_ok=True)
 
