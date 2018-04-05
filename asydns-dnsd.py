@@ -10,7 +10,10 @@ from dnslib.server import BaseResolver, DNSServer
 
 NAME_VALID_FOR = 3600
 
-datadir = Path.home() / '.asydns' / 'data'
+user = pwd.getpwnam(sys.argv[1])
+
+datadir = Path(user.pw_dir) / '.asydns' / 'data'
+
 datadir.mkdir(parents=True, exist_ok=True)
 
 regex_sha224 = re.compile('[0-9a-f]{56}')
