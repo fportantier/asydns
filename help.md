@@ -10,9 +10,9 @@ Ok, maybe not an "awesome name", but a really dynamic name.
 
 What do you need?
 
-1) Generate a public/private key pair
-2) Claim your asydns.org subdomain
-3) Probe (cryptographically) that you have the private key of the key pair
-4) Done! You have an AsyDNS subdomain!  :)
+1. Generate a public/private key pair
+2. Claim your asydns.org subdomain
+3. Probe (cryptographically) that you have the private key of the key pair
+4. Done! You have an AsyDNS subdomain!  :)
 
 
