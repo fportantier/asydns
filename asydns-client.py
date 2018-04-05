@@ -1,13 +1,13 @@
 import base64
+import json
 from pathlib import Path
 
+import click
 import requests
 from Crypto import Random
 from Crypto.Hash import SHA224
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
-
-import click
 
 
 @click.command()
@@ -46,7 +46,7 @@ def cmd_asydns(url, generate, revoke):
         pub = RSA.importKey(p.read())
 
 
-    r = requests.get(URL + '/api')
+    r = requests.get(url + '/api')
 
     if r.status_code != 200:
         print('Error')
@@ -61,14 +61,16 @@ def cmd_asydns(url, generate, revoke):
     response = base64.b64encode(response).decode()
 
     if revoke:
-        r = requests.delete(URL + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
+        r = requests.delete(url + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
     else:
-        r = requests.post(URL + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
+        r = requests.post(url + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
 
     if r.status_code != 200:
         print('Error')
         print(r.content.decode())
         return False
+
+    print(json.dumps(r.json(), indent=4))
 
     return True
 

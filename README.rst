@@ -1,4 +1,5 @@
-# Im AsyDNS (Asymmetric DNS)
+Im AsyDNS (Asymmetric DNS)
+--------------------------
 
 My task in this world is provide DNS names to all the people that has an Asymmetric Cryptography Key Pair
 
@@ -14,5 +15,15 @@ What do you need?
 2. Claim your asydns.org subdomain
 3. Probe (cryptographically) that you have the private key of the key pair
 4. Done! You have an AsyDNS subdomain!  :)
+
+The API it's really simple, and a Python 3.x client it's included with the package, just:
+
+.. code-block:: bash
+
+    $ python3 asydns-client.py
+
+The client generates a new RSA key pair, and claims your new domain name.
+
+By default, we use asydns.org, but you can host your own AsyDNS server with your own domain.
 
 

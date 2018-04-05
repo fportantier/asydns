@@ -79,7 +79,7 @@ class AsyDNS():
         self.regex_sha224 = re.compile('[0-9a-f]{56}')
 
         defaults = {
-            'domain': 'a.asydns.com',
+            'domain': 'a.asydns.org',
             'ttl' : 3600,
         }
 
