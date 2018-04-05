@@ -1,6 +1,6 @@
 #!/bin/sh
 
-daemon="cd /opt/asydns && /opt/asydns/asydns-dnsd"
+daemon="cd /opt/asydns && /opt/asydns/venv/bin/python3.6 asydns-dnsd.py"
 daemon_flags="_asydns"
 
 . /etc/rc.d/rc.subr

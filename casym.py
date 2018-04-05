@@ -37,10 +37,10 @@ with pub_file.open() as p:
     pub = RSA.importKey(p.read())
 
 sha224 = SHA224.new(pub.exportKey('DER')).hexdigest()
-print('Your name will be {}.asymdns.io'.format(sha224))
+print('Your name will be {}.a.asymdns.io'.format(sha224))
 
 print('Checking if the name exists ...')
-r = requests.get('https://127.0.0.1:8000/{}'.format(sha224), verify=False)
+r = requests.get('https://asydns.org:8443/{}'.format(sha224), verify=False)
 
 print(r.status_code)
 print(r.content)
@@ -53,6 +53,6 @@ signer = PKCS1_v1_5.new(key)
 response = signer.sign(SHA224.new(challenge))
 response = base64.b64encode(response).decode()
 
-r = requests.post('https://127.0.0.1:8000/', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response}, verify=False)
+r = requests.post('https://asydns.org:8443/', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response}, verify=False)
 
 print(r.content)

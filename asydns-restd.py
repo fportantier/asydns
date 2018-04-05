@@ -20,7 +20,7 @@ cfg_file = dotdir / 'config.json'
 pub_file = dotdir / 'server.pub'
 key_file = dotdir / 'server.key'
 
-datadir = Path('/tmp/asymdns')
+datadir = dotdir / 'data'
 datadir.mkdir(exist_ok=True)
 
 regex_sha224 = re.compile('[0-9a-f]{56}')
@@ -73,7 +73,7 @@ class AsymDNS(object):
             resp.body = ('\nInvalid sha 224.\n\n')
             return False
 
-        ip_file = datadir / (sha224 + '.ip')
+        ip_file = datadir / (sha224)
 
         if not ip_file.is_file() or (time() - ip_file.stat().st_mtime) > cfg['ttl']:
             resp.status = falcon.HTTP_404

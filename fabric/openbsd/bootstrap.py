@@ -1,15 +1,25 @@
 from pathlib import Path
 from fabric.api import local, run, cd, sudo, settings, put, env
 
+env.shell = '/bin/ksh -c'
+
+home_dir = '/opt/asydns/'
+venv_dir = home_dir + 'venv/'
+bin_dir = venv_dir + 'bin/'
+pip3 = bin_dir + 'pip3'
+py3 = bin_dir + 'python3.6'
+
+
+def update():
+
+    with cd(home_dir):
+        run("git pull")
+
+    run('rcctl restart asydns_restd')
+    run('rcctl restart asydns_dnsd')
+
+
 def deploy():
-
-    env.shell = '/bin/ksh -c'
-
-    home_dir = '/opt/asydns/'
-    venv_dir = home_dir + 'venv/'
-    bin_dir = venv_dir + 'bin/'
-    pip3 = bin_dir + 'pip3'
-    py3 = bin_dir + 'python3.6'
 
     packages = [
         'git',
@@ -40,8 +50,8 @@ def deploy():
         run("su - _asydns -c '{} install -r requirements.txt'".format(pip3))
 
     # COPY FILES
-    put('files/asydns-restd', '/etc/rc.d/asydns-restd')
-    put('files/asydns-dnsd', '/etc/rc.d/asydns-dnsd')
+    put('files/asydns_restd', '/etc/rc.d/asydns_restd', mode='0744')
+    put('files/asydns_dnsd', '/etc/rc.d/asydns_dnsd', mode='0744')
     put('files/rc.conf.local', '/etc/rc.conf.local')
     put('files/acme-client.conf', '/etc/acme-client.conf')
 
@@ -60,6 +70,4 @@ def deploy():
     # SERVICE RESTART
     run('rcctl restart asydns_restd')
     run('rcctl restart asydns_dnsd')
-
-
 
