@@ -42,7 +42,7 @@ class AsymResolver(BaseResolver):
 
         self.regex_sha224 = re.compile('[0-9a-f]{56}')
 
-        self.cfg_file = dotdir / 'config.json'
+        self.cfg_file = self.dotdir / 'config.json'
 
         defaults = {
             'domain': 'a.asydns.org',
