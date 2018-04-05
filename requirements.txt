@@ -1,5 +1,5 @@
+click
 dnslib
 falcon
 pycrypto
 gunicorn
-markdown

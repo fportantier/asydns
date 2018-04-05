@@ -52,23 +52,18 @@ def deploy():
         run("su - _asydns -c '{} install --upgrade pip'".format(pip3))
         run("su - _asydns -c '{} install -r requirements.txt'".format(pip3))
 
-    # COPY FILES
     put('files/asydns_restd', '/etc/rc.d/asydns_restd', mode='0744')
     put('files/asydns_dnsd', '/etc/rc.d/asydns_dnsd', mode='0744')
     put('files/rc.conf.local', '/etc/rc.conf.local')
     put('files/acme-client.conf', '/etc/acme-client.conf')
 
-    with settings(warn_only=True):
-        if run("test -f /etc/ssl/asydns.org.fullchain.crt").failed:
-            put('files/httpd.conf', '/etc/rc.d/httpd.conf')
-            run('rcctl restart httpd')
+    put('files/httpd.conf', '/etc/rc.d/httpd.conf')
+    run('rcctl restart httpd')
 
+    with settings(warn_only=True):
         run('acme-client -vAD asydns.org')
 
     run("chmod a+r /etc/ssl/asydns.org.key")
-
-    put('files/httpd-ssl.conf', '/etc/rc.d/httpd.conf')
-    run('rcctl restart httpd')
 
     # SERVICE RESTART
     run('rcctl restart asydns_restd')
