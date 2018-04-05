@@ -67,8 +67,6 @@ class AsymResolver(BaseResolver):
         qn = str(qname)
 
         print(request.q)
-        print(dir(request.q))
-        print(qname)
 
         if qname in self.cfg['registers'].keys():
             answer = RR(qname, QTYPE.A, rdata=A(registers[qname]), ttl=300)
