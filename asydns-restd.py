@@ -76,8 +76,14 @@ class AsymDNS(object):
 
 
     def get_help(self):
+
         with (self.code_dir / 'help.md').open() as help_file:
-            help_text = markdown.markdown(help_file.read())
+
+            try:
+                help_text = markdown.markdown(help_file.read())
+            except Exception:
+                help_text = '<h1>Error getting the help text</h1>'
+
             return help_text
 
 
@@ -99,7 +105,7 @@ class AsymDNS(object):
         return True
 
 
-    def on_get(self, req, resp, sha224=''):
+    def on_get(self, req, resp, param=''):
         """Handles GET requests"""
 
         token = '{}@{}@{}'.format(
@@ -111,12 +117,18 @@ class AsymDNS(object):
         challenge = self.pub.encrypt(token.encode(), '0')[0]
         challenge = base64.b64encode(challenge).decode()
 
+        if param == '':
+            resp.status = falcon.HTTP_200
+            resp.content_type = 'text/html'
+            resp.body = self.get_help()
+            return True
+
         if not self.regex_sha224.match(sha224):
             resp.status = falcon.HTTP_400
             resp.content_type = 'text/html'
-            #resp.body = json.dumps({'error': 'Invalid SHA224'})
+            resp.body = json.dumps({'error': 'Invalid SHA224'})
             resp.body = self.get_help()
-            return False
+            return True
 
         ip_file = self.datadir / sha224
 
