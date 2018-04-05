@@ -15,8 +15,8 @@ def update():
     with cd(home_dir):
         run("git reset --hard HEAD")
         run("git pull")
-        run("su - _asydns -c '{} install --upgrade pip'".format(pip3))
-        run("su - _asydns -c '{} install -r requirements.txt'".format(pip3))
+        run("su - _asydns -c '{} install -q --upgrade pip'".format(pip3))
+        run("su - _asydns -c '{} install -q -r requirements.txt'".format(pip3))
 
     run('chown -R _asydns:_asydns /opt/asydns')
 
@@ -48,18 +48,18 @@ def deploy():
 
     with settings(warn_only=True):
         if run("test -d %s" % home_dir + 'venv').failed:
-            run("su - _asydns -c 'python3.6 -m venv %'" % venv_dir)
+            run("su - _asydns -c 'python3.6 -m venv {}'".format(venv_dir))
 
     with cd(home_dir + 'venv'):
         run("su - _asydns -c '{} install --upgrade pip'".format(pip3))
         run("su - _asydns -c '{} install -r requirements.txt'".format(pip3))
 
+    put('files/httpd.conf', '/etc/rc.d/httpd.conf')
     put('files/asydns_restd', '/etc/rc.d/asydns_restd', mode='0744')
     put('files/asydns_dnsd', '/etc/rc.d/asydns_dnsd', mode='0744')
     put('files/rc.conf.local', '/etc/rc.conf.local')
     put('files/acme-client.conf', '/etc/acme-client.conf')
 
-    put('files/httpd.conf', '/etc/rc.d/httpd.conf')
     run('rcctl restart httpd')
 
     with settings(warn_only=True):
