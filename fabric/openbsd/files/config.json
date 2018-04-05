@@ -1,0 +1,8 @@
+{
+  "domain": "a.asydns.org",
+  "ttl": 4000,
+  "registers" : {
+    "ns1.a.asydns.org" : "207.246.116.67"
+  }
+}
+

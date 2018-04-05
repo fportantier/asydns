@@ -26,4 +26,14 @@ The client generates a new RSA key pair, and claims your new domain name.
 
 By default, we use asydns.org, but you can host your own AsyDNS server with your own domain.
 
+How to use
+==========
+
+If you simply want a domain name, you can use the asydns-bash client, that has no dependencies.
+
+https://github.com/portantier/asydns-bash
+
+If you want a python client, you can use the file asydns-client.py from this repo.
+
+If you use habu (https://github.com/portantier/habu), you can use the command hasu.asydns
 
