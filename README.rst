@@ -7,7 +7,7 @@ I can give you awesome names like:
 
 e6e9b4c019af6b1787780b2d25a94c1e960760474ce5544499efcff9.a.asydns.org
 
-Ok, maybe not an "awesome name", but a really dynamic name.
+Ok, maybe not an **"awesome name"**, but a really dynamic name.
 
 What do you need?
 
