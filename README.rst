@@ -95,7 +95,7 @@ you only need an RSA key pair, that can be generated with standard tools, like O
 Because the hexdigest of SHA224 can be used has a subdomain name. MD5 it's broken, and SHA256, 
 SHA512, etc, generates a long hexdigest that is invalid has a subdomain name.
 
-**It's an stable proyect?**
+**It's a stable proyect?**
 
 No, has been released on 5th April 2018.
 
