@@ -36,8 +36,8 @@ https://github.com/portantier/asydns-bash
 
 Also, a reference implementation resides in this repo, at asydns-client.py
 
-Video
-=====
+Usage Demo Video
+================
 
 https://www.youtube.com/watch?v=zdZfc7E1VIc
 
