@@ -5,7 +5,6 @@ import pwd
 import re
 import sys
 from pathlib import Path
-from pprint import pprint
 from time import time
 
 import falcon
@@ -16,43 +15,6 @@ from Crypto.Signature import PKCS1_v1_5
 
 
 class AsyDNS():
-
-
-    def _validate_response(self, req):
-
-        try:
-            body = req.stream.read()
-            data = json.loads(body.decode('utf-8'))
-            challenge = base64.b64decode(data['challenge'])
-            response = base64.b64decode(data['response'])
-            client_pub = RSA.importKey(data['pub'])
-            decrypted_challenge = self.key.decrypt(challenge).decode()
-            challenge_addr, challenge_time, junk = decrypted_challenge.split('@', maxsplit=2)
-            delta = int(challenge_time) - time()
-        except Exception as e:
-            print(e)
-            return { 'status': falcon.HTTP_400, 'error': 'Invalid request' }
-
-        h = SHA224.new(challenge)
-        verifier = PKCS1_v1_5.new(client_pub)
-
-        if not verifier.verify(h, response):
-            return { 'status': falcon.HTTP_400, 'error': 'Invalid signature' }
-
-        if challenge_addr != req.remote_addr:
-            return { 'status': falcon.HTTP_400, 'error': 'Invalid response' }
-
-        if delta > 30:
-            return { 'status': falcon.HTTP_400, 'error': 'Expired response' }
-
-        sha224 = SHA224.new(client_pub.exportKey(format='DER')).hexdigest()
-
-        return {
-            'status': falcon.HTTP_200,
-            'sha224' : sha224,
-            'error': None,
-        }
-
 
     def __init__(self):
 
@@ -111,6 +73,41 @@ class AsyDNS():
 
         with pub_file.open() as p:
             self.pub = RSA.importKey(p.read())
+
+
+    def _validate_response(self, req):
+
+        try:
+            body = req.stream.read()
+            data = json.loads(body.decode('utf-8'))
+            challenge = base64.b64decode(data['challenge'])
+            response = base64.b64decode(data['response'])
+            client_pub = RSA.importKey(data['pub'])
+            decrypted_challenge = self.key.decrypt(challenge).decode()
+            challenge_addr, challenge_time, junk = decrypted_challenge.split('@', maxsplit=2)
+            delta = int(challenge_time) - time()
+        except Exception as e:
+            return { 'status': falcon.HTTP_400, 'error': 'Invalid request' }
+
+        h = SHA224.new(challenge)
+        verifier = PKCS1_v1_5.new(client_pub)
+
+        if not verifier.verify(h, response):
+            return { 'status': falcon.HTTP_400, 'error': 'Invalid signature' }
+
+        if challenge_addr != req.remote_addr:
+            return { 'status': falcon.HTTP_400, 'error': 'Invalid response' }
+
+        if delta > 30:
+            return { 'status': falcon.HTTP_400, 'error': 'Expired response' }
+
+        sha224 = SHA224.new(client_pub.exportKey(format='DER')).hexdigest()
+
+        return {
+            'status': falcon.HTTP_200,
+            'sha224' : sha224,
+            'error': None,
+        }
 
 
     def on_get(self, req, resp):
@@ -178,19 +175,24 @@ class AsyDNS():
             return
 
         revoke_file = self.revokedir / validation['sha224']
+        ip_file = self.datadir / validation['sha224']
+
+        if ip_file.is_file():
+            ip_file.unlink()
 
         with revoke_file.open('w') as rf:
             rf.write(req.remote_addr)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({
-            'message' : '{} has been revoked'.format(validation['sha224']),
+            'message' : '{}.{} has been revoked'.format(validation['sha224'], self.cfg['domain']),
         })
 
         return True
 
 
 app = falcon.API()
+app.req_options.auto_parse_form_urlencoded = True
 
 asydns = AsyDNS()
 

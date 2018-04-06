@@ -65,6 +65,9 @@ def cmd_asydns(url, generate, revoke):
     else:
         r = requests.post(url + '/api', json={'pub': pub.exportKey('PEM').decode(), 'challenge' : j['challenge'], 'response': response})
 
+    print(r.request.headers)
+    print(r.request.body)
+
     if r.status_code != 200:
         print('Error')
         print(r.content.decode())

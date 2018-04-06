@@ -79,7 +79,7 @@ class AsymResolver(BaseResolver):
             if ip_file.is_file() and (time.time() - ip_file.stat().st_mtime) < self.cfg['ttl']:
                 with ip_file.open() as ipf:
                     ip = ipf.read()
-                    answer = RR(qname, QTYPE.A, rdata=A(ip), ttl=5)
+                    answer = RR(qname, QTYPE.A, rdata=A(ip), ttl=30)
                     reply.add_answer(answer)
 
         return reply
@@ -100,4 +100,3 @@ if __name__ == "__main__":
 
     while server.isAlive():
         time.sleep(1)
-
