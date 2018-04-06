@@ -1,5 +1,5 @@
-Im AsyDNS (Asymmetric DNS)
---------------------------
+AsyDNS (Asymmetric DNS)
+-----------------------
 
 My task in this world is provide DNS names to all the people that has an Asymmetric Cryptography Key Pair
 
@@ -29,11 +29,14 @@ By default, we use asydns.org, but you can host your own AsyDNS server with your
 How to use
 ==========
 
-If you simply want a domain name, you can use the asydns-bash client, that has no dependencies.
+If you simply want a domain name, you can use the asydns-bash client, that only needs bash, curl and
+openssl.
 
 https://github.com/portantier/asydns-bash
 
-If you want a python client, you can use the file asydns-client.py from this repo.
+Also, a reference implementation resides in this repo, at asydns-client.py
 
-If you use habu (https://github.com/portantier/habu), you can use the command hasu.asydns
+Video
+=====
 
+https://www.youtube.com/watch?v=zdZfc7E1VIc
