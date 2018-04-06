@@ -79,3 +79,29 @@ with only one modification: instead of a POST request, you need to make a DELETE
 When a registry it's revoked, never will be valid. But, you can simply create a new RSA key 
 pair and request another registry.
 
+Frequently Asked Questions (FAQ)
+================================
+
+**¿Why I need that protocol?**
+Maybe, you don't need AsyDNS. But can be useful if you need to mantain a DNS record of your 
+current public IP (or the public IP for a device that you manage).
+
+In some form, it's like other Dynamic DNS services, but you don't need to registry an user, 
+you only need an RSA key pair, that can be generated with standard tools, like OpenSSL.
+
+**¿Why do you use SHA224 for hashing?**
+Because the hexdigest of SHA224 can be used has a subdomain name. MD5 it's broken, and SHA256, 
+SHA512, etc, generates a long hexdigest that is invalid has a subdomain name.
+
+**It's an stable proyect?**
+No, has been released on 5th April 2018.
+
+**Can I deploy my own AsyDNS server?**
+Of course, the repo includes a Fabric FabFile (http://www.fabfile.org/) to deploy an OpenBSD 
+instance with the server ready. You only need to configure the domain name that you will use.
+
+If you want to deploy AsyDNS on other platforms, you can contact me and I can help you.
+
+**How can I contribute to the project?**
+You can use Github for that. Issues, pull requests, etc...
+
