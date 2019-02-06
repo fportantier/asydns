@@ -107,7 +107,7 @@ class AsyDNS():
         if not verifier.verify(h, response):
             return { 'status': falcon.HTTP_400, 'error': 'Invalid signature' }
 
-        if challenge_addr != req.remote_addr:
+        if challenge_addr != req.get_header('X-Forwarded-For', default=req.remote_addr):
             return { 'status': falcon.HTTP_400, 'error': 'Invalid response' }
 
         if delta > 30:
@@ -126,7 +126,7 @@ class AsyDNS():
         """Handles GET requests"""
 
         token = '{}@{}@{}'.format(
-            req.remote_addr,
+            req.get_header('X-Forwarded-For', default=req.remote_addr),
             int(time()),
             SHA224.new(Random.new().read(64)).hexdigest(),
         )
@@ -160,10 +160,10 @@ class AsyDNS():
             return True
 
         try:
-            self.backend.update(validation['sha224'], req.headers.get('X-Forwarded-For', req.remote_addr))
+            self.backend.update(validation['sha224'], req.get_header('X-Forwarded-For', default=req.remote_addr))
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
-                'ip': req.headers.get('X-Forwarded-For', req.remote_addr),
+                'ip': req.get_header('X-Forwarded-For', default=req.remote_addr),
                 'name': '{}.{}'.format(validation['sha224'], self.config['domain'])
             })
         except Exception as e:
