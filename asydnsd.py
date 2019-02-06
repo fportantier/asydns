@@ -155,7 +155,7 @@ class AsyDNS():
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
                 'error': 'revoked public key',
-                'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
+                'name': '{}.{}'.format(validation['sha224'], self.config['domain'])
             })
             return True
 
@@ -164,7 +164,7 @@ class AsyDNS():
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
                 'ip': req.remote_addr,
-                'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
+                'name': '{}.{}'.format(validation['sha224'], self.config['domain'])
             })
         except Exception as e:
             self.logger.error(e)
@@ -190,7 +190,7 @@ class AsyDNS():
             self.backend.revoke(validation['sha224'])
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
-                'message' : '{}.{} has been revoked'.format(validation['sha224'], self.cfg['domain']),
+                'message' : '{}.{} has been revoked'.format(validation['sha224'], self.config['domain']),
             })
         except Exception as e:
             self.logger.error(e)
