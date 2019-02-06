@@ -160,7 +160,7 @@ class AsyDNS():
             return True
 
         try:
-            self.backend.update(validation['sha224'], req.remote_addr)
+            self.backend.update(validation['sha224'], req.headers.get('X-Forwarded-For', req.remote_addr))
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
                 'ip': req.headers.get('X-Forwarded-For', req.remote_addr),
