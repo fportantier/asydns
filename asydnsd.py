@@ -98,7 +98,7 @@ class AsyDNS():
             challenge_addr, challenge_time, junk = decrypted_challenge.split('@', maxsplit=2)
             delta = int(challenge_time) - time()
         except Exception as e:
-            logger.error(e)
+            self.logger.error(e)
             return { 'status': falcon.HTTP_400, 'error': 'Invalid request' }
 
         h = SHA224.new(challenge)
@@ -167,7 +167,7 @@ class AsyDNS():
                 'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
             })
         except Exception as e:
-            logger.error(e)
+            self.logger.error(e)
             resp.status = falcon.HTTP_503
             resp.body = json.dumps({
                 'error' : 'An error has been ocurred',
@@ -193,7 +193,7 @@ class AsyDNS():
                 'message' : '{}.{} has been revoked'.format(validation['sha224'], self.cfg['domain']),
             })
         except Exception as e:
-            logger.error(e)
+            self.logger.error(e)
             resp.status = falcon.HTTP_503
             resp.body = json.dumps({
                 'error' : 'An error has been ocurred',
