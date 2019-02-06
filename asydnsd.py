@@ -6,6 +6,7 @@ import re
 import sys
 from pathlib import Path
 from time import time
+import logging
 
 import falcon
 from Crypto import Random
@@ -39,11 +40,14 @@ class AsyDNS():
         pub_file = dotdir / 'server.pub'
         key_file = dotdir / 'server.key'
 
-        self.datadir = dotdir / 'data'
-        self.datadir.mkdir(exist_ok=True)
+        self.logger = logging.getLogger('asydnsd')
+        self.logger.setLevel(logging.DEBUG)
 
-        self.revokedir = dotdir / 'revoked'
-        self.revokedir.mkdir(exist_ok=True)
+        #self.datadir = dotdir / 'data'
+        #self.datadir.mkdir(exist_ok=True)
+
+        #self.revokedir = dotdir / 'revoked'
+        #self.revokedir.mkdir(exist_ok=True)
 
         self.regex_sha224 = re.compile('[0-9a-f]{56}')
 
@@ -94,6 +98,7 @@ class AsyDNS():
             challenge_addr, challenge_time, junk = decrypted_challenge.split('@', maxsplit=2)
             delta = int(challenge_time) - time()
         except Exception as e:
+            logger.error(e)
             return { 'status': falcon.HTTP_400, 'error': 'Invalid request' }
 
         h = SHA224.new(challenge)
@@ -161,7 +166,8 @@ class AsyDNS():
                 'ip': req.remote_addr,
                 'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
             })
-        except Exception:
+        except Exception as e:
+            logger.error(e)
             resp.status = falcon.HTTP_503
             resp.body = json.dumps({
                 'error' : 'An error has been ocurred',
@@ -186,7 +192,8 @@ class AsyDNS():
             resp.body = json.dumps({
                 'message' : '{}.{} has been revoked'.format(validation['sha224'], self.cfg['domain']),
             })
-        except Exception:
+        except Exception as e:
+            logger.error(e)
             resp.status = falcon.HTTP_503
             resp.body = json.dumps({
                 'error' : 'An error has been ocurred',
