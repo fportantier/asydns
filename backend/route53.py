@@ -21,7 +21,7 @@ class Route53Backend():
             aws_secret_access_key=self.config['aws_secret']
         )
 
-        response = self.client.get_hosted_zone(Id='Z1AY21OJ6IQZD4')
+        response = self.client.get_hosted_zone(Id=self.config['route53_zone_id'])
         self.hosted_zone = response['HostedZone']
 
         if self.hosted_zone['Name'] != self.config['domain']:
