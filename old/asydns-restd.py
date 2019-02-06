@@ -13,13 +13,6 @@ from Crypto.Hash import SHA224
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
-from backend.route53 import Route53Backend
-
-
-backend_mapping = {
-    'Route53' : Route53Backend,
-}
-
 
 class AsyDNS():
 
@@ -34,7 +27,7 @@ class AsyDNS():
         dotdir = self.home_dir / '.asydns'
         dotdir.mkdir(exist_ok=True)
 
-        config_file = dotdir / 'config.json'
+        cfg_file = dotdir / 'config.json'
 
         pub_file = dotdir / 'server.pub'
         key_file = dotdir / 'server.key'
@@ -47,20 +40,20 @@ class AsyDNS():
 
         self.regex_sha224 = re.compile('[0-9a-f]{56}')
 
-        if not config_file.is_file():
-            raise Exception('NoConfigFile', 'No config file. Please, create it in: {}'.format(str(config_file)))
+        defaults = {
+            'domain': 'a.asydns.org',
+            'ttl' : 3600,
+        }
 
-        try:
-            with config_file.open() as c:
-                self.config = json.loads(c.read())
-        except Exception:
-            raise Exception('InvalidConfigFile', 'Error loading config file. Please, provide a valid JSON')
+        self.cfg = defaults
 
-        backend_class = backend_mapping.get(self.config['backend'], None)
-        self.backend = backend_class(self.config)
+        if cfg_file.is_file():
+            try:
+                with cfg_file.open() as c:
+                    self.cfg.update(json.loads(c.read()))
+            except Exception:
+                print('error loading config file, using defaults', file=sys.stderr)
 
-        if not self.backend:
-            raise Exception('NoBackend', 'Please, define a backend. Options: {}'.format(','.join(backend_mapping.keys())))
 
         if not key_file.is_file():
 
@@ -144,28 +137,29 @@ class AsyDNS():
             resp.body = json.dumps({ 'error' : validation['error'] })
             return
 
-        current = self.backend.check(validation['sha224'])
+        ip_file = self.datadir / validation['sha224']
 
-        if current['status'] == 'revoked':
+        if (self.revokedir / validation['sha224']).is_file():
+
+            if ip_file.is_file():
+                ip_file.unlink()
+
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
                 'error': 'revoked public key',
                 'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
             })
+
             return True
 
-        try:
-            self.backend.update(validation['sha224'], req.remote_addr)
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps({
-                'ip': req.remote_addr,
-                'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
-            })
-        except Exception:
-            resp.status = falcon.HTTP_503
-            resp.body = json.dumps({
-                'error' : 'An error has been ocurred',
-            })
+        with ip_file.open('w') as ipf:
+            ipf.write(req.remote_addr)
+
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({
+            'ip': req.remote_addr,
+            'name': '{}.{}'.format(validation['sha224'], self.cfg['domain'])
+        })
 
         return True
 
@@ -180,17 +174,19 @@ class AsyDNS():
             resp.body = json.dumps({ 'error' : validation['error'] })
             return
 
-        try:
-            self.backend.revoke(validation['sha224'])
-            resp.status = falcon.HTTP_200
-            resp.body = json.dumps({
-                'message' : '{}.{} has been revoked'.format(validation['sha224'], self.cfg['domain']),
-            })
-        except Exception:
-            resp.status = falcon.HTTP_503
-            resp.body = json.dumps({
-                'error' : 'An error has been ocurred',
-            })
+        revoke_file = self.revokedir / validation['sha224']
+        ip_file = self.datadir / validation['sha224']
+
+        if ip_file.is_file():
+            ip_file.unlink()
+
+        with revoke_file.open('w') as rf:
+            rf.write(req.remote_addr)
+
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({
+            'message' : '{}.{} has been revoked'.format(validation['sha224'], self.cfg['domain']),
+        })
 
         return True
 
