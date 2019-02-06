@@ -163,7 +163,7 @@ class AsyDNS():
             self.backend.update(validation['sha224'], req.remote_addr)
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({
-                'ip': req.remote_addr,
+                'ip': req.headers.get('X-Forwarded-For', req.remote_addr),
                 'name': '{}.{}'.format(validation['sha224'], self.config['domain'])
             })
         except Exception as e:
