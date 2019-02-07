@@ -1,5 +1,5 @@
-AsyDNS (Asymmetric DNS)
------------------------
+AsyDNS (Asymmetric Cryptography DNS)
+------------------------------------
 
 My task in this world is provide DNS names to all the people that has an Asymmetric Cryptography Key Pair
 
