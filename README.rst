@@ -79,6 +79,25 @@ with only one modification: instead of a POST request, you need to make a DELETE
 When a registry it's revoked, never will be valid. But, you can simply create a new RSA key 
 pair and request another registry.
 
+
+Backend Change on 2019-02-06
+============================
+
+Today, I've changed the structure of AsyDNS to support various "backends". Those backends 
+provide the functionality to react to the HTTP requests and update some DNS server.
+
+The default backend (the only one generated for now) stores the information via Amazon Route53 
+API. 
+
+The past version of AsyDNS stored the information in the local filesystem, and this information 
+was server throuhg the asydns-dnsd service. That service never was stable, so, has been removed.
+
+Now, AsyDNS only serves the HTTP REST API. The DNS part is server through Amazon Route53.
+
+From the client side, all the things works as before, because the HTTP REST API is exactly the 
+same.
+
+
 Frequently Asked Questions (FAQ)
 ================================
 
