@@ -26,6 +26,8 @@ The client generates a new RSA key pair, and claims your new domain name.
 
 By default, we use asydns.org, but you can host your own AsyDNS server with your own domain.
 
+The development of this software is supported by Securetia SRL (https://www.securetia.com/)
+
 How to use
 ==========
 
