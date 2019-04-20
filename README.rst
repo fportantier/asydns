@@ -28,15 +28,33 @@ By default, we use asydns.org, but you can host your own AsyDNS server with your
 
 The development of this software is supported by Securetia SRL (https://www.securetia.com/)
 
-How to use
-==========
+How to use (clients)
+====================
 
-If you simply want a domain name, you can use the asydns-bash client, that only needs bash, curl and
-openssl.
+Bash
+----
 
 https://github.com/portantier/asydns-bash
 
-Also, a reference implementation resides in this repo, at asydns-client.py
+Python
+------
+
+A reference implementation resides in this repo, at asydns-client.py
+
+Habu https://github.com/portantier/habu contains a client (habu.asydns)
+
+Go
+--
+
+The newest client is written in Go, and is multiplatform, is the recommended implementation:
+
+https://github.com/portantier/asydns-client
+
+Other
+-----
+
+If you know other implementations or you're interested in develop a new one, please, tell me and 
+I will add a reference.
 
 Usage Demo Video
 ================
